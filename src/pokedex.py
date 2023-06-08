@@ -24,7 +24,7 @@ if "selected_pokemon" not in st.session_state:
 def main_page():
     pokemon_df = load_pokemon_dataframe()
 
-    st.title("Pokédex Dashboard")
+    st.markdown("<h1 style='text-align: center;'>Pokédex Dashboard</h1>", unsafe_allow_html=True)
     st.sidebar.title("Pokédex Dashboard")
     st.session_state["selected_pokemon"] = st.selectbox("-",
                                                         pokemon_df["name"].values,
@@ -47,7 +47,8 @@ def main_page():
     with col1:
         # Choose between "type" and "pop-out"
         mode = st.radio("", ["type", "pop-out"])
-        fig = pokemon_umap()
+        fig = pokemon_umap(color_by=mode, pokedex_number=get_pokedex_number(pokemon_df
+                                                                            , st.session_state["selected_pokemon"]))
         st.plotly_chart(fig, use_container_width=True)
 
     with col2:

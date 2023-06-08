@@ -20,16 +20,9 @@ def load_pokemon_dataframe():
     pokemon_path = parent_path.parent.absolute() / "data/pokemon.csv"
     df = pd.read_csv(pokemon_path)
     return df
-
-
-def pokemon_umap(color_by: str = "type", pokedex_number: int = 1):
-    """Display an umap plot of pokemon.
-
-    Args:
-        color_by (str, optional): Color by type or similarity. Defaults to "type". Can be "type" or "pop-out".
-        pokedex_number (int, optional): Current pokemon id, used to color by pop-out. Defaults to 1.
-    """
-    np.random.seed(42)
+@st.cache_data
+def get_df_with_umap():
+    np.random.seed(0)
     df = load_pokemon_dataframe()
 
     # Select numeric columns
@@ -43,16 +36,26 @@ def pokemon_umap(color_by: str = "type", pokedex_number: int = 1):
     df_numeric = pd.DataFrame(scaler.fit_transform(df_numeric), columns=df_numeric.columns)
 
     # UMAP
-    umap_model = umap.UMAP(n_neighbors=5, min_dist=0.3, metric="correlation")
+    umap_model = umap.UMAP(n_neighbors=5, min_dist=0.3, metric="correlation", random_state=0)
     umap_embeddings = umap_model.fit_transform(df_numeric)
-    df["x"] = umap_embeddings[:, 0] + np.random.normal(loc=0, scale=0.1, size=umap_embeddings.shape[0])
-    df["y"] = umap_embeddings[:, 1] + np.random.normal(loc=0, scale=0.1, size=umap_embeddings.shape[0])
+    umap_df = pd.DataFrame(umap_embeddings, columns=["x", "y"])
+    return umap_df
 
-    # Get the hex color of each type from style.css
-    # Load style.css
-    current_path = pathlib.Path(__file__).parent.absolute()
-    with open(current_path / "style.css") as f:
-        css = f.read()
+@st.cache_data
+def pokemon_umap(color_by: str = "type", pokedex_number: int = 1):
+    """Display an umap plot of pokemon.
+
+    Args:
+        color_by (str, optional): Color by type or similarity. Defaults to "type". Can be "type" or "pop-out".
+        pokedex_number (int, optional): Current pokemon id, used to color by pop-out. Defaults to 1.
+    """
+    np.random.seed(42)
+    df = load_pokemon_dataframe()
+    umap_df = get_df_with_umap()
+
+    df["x"] = umap_df["x"]
+    df["y"] = umap_df["y"]
+
     # Get the hex color of each type
     type_colors = {
         'normal': '#aa9',
@@ -88,13 +91,13 @@ def pokemon_umap(color_by: str = "type", pokedex_number: int = 1):
             width=800,
             height=600,
         )
-        fig.update_traces(marker=dict(size=12, line=dict(width=2, color="DarkSlateGrey")))
-        fig.update_layout(
+        # fig.update_traces(marker=dict(size=12, line=dict(width=2, color="DarkSlateGrey")))
+        """fig.update_layout(
             plot_bgcolor="#f9f9f9",
             paper_bgcolor="#f9f9f9",
             font_color="#333333",
             margin=dict(l=0, r=0, t=0, b=0),
-        )
+        )"""
     elif color_by == "pop-out":
         df["pop-out"] = df["pokedex_number"] == pokedex_number
         # Get the name of the current pokemon
@@ -115,12 +118,12 @@ def pokemon_umap(color_by: str = "type", pokedex_number: int = 1):
             width=800,
             height=600,
         )
-        fig.update_traces(marker=dict(size=12, line=dict(width=2, color="DarkSlateGrey")))
+        # fig.update_traces(marker=dict(size=12, line=dict(width=2, color="DarkSlateGrey")))
         # Center the plot on the current pokemon
         fig.update_layout(
-            plot_bgcolor="#f9f9f9",
-            paper_bgcolor="#f9f9f9",
-            font_color="#333333",
+            #plot_bgcolor="#f9f9f9",
+            #paper_bgcolor="#f9f9f9",
+            #font_color="#333333",
             margin=dict(l=0, r=0, t=0, b=0),
             xaxis=dict(range=[df[df["name"] == current_pokemon]["x"].values[0] - 4,
                               df[df["name"] == current_pokemon]["x"].values[0] + 4]),
@@ -198,6 +201,53 @@ def get_pokemon_name(pokedex_number: int):
         5: "Charmeleon",
     }
     return names[pokedex_number]
+
+@st.cache_data
+def get_pokemon_evolution_line(pokemon_name: str):
+    parent_path = pathlib.Path(__file__).parent
+    # Loop until get src folder
+    while parent_path.name != "src":
+        parent_path = parent_path.parent
+
+    evolution_path = parent_path.parent.absolute() / "data/evolutions.csv"
+    df = pd.read_csv(evolution_path)
+
+    # Find the row with the pokemon on any of the columns
+    # Create an empty list to store matching rows
+    matching_rows = []
+
+    # Iterate over each row in the DataFrame
+    for index, row in df.iterrows():
+        # Iterate over each column in the row
+        for column in df.columns:
+            # Check if the search string is present in the cell value
+            if pokemon_name in str(row[column]):
+                # Append the matching row to the list
+                matching_rows.append(row)
+                # Break the inner loop to avoid duplicate rows
+                break
+
+    evolution = pd.DataFrame(matching_rows, columns=df.columns)
+
+    # For each column, create a list of all the unique values in the column
+    unique_values = [evolution[column].unique() for column in evolution.columns]
+
+    return unique_values
+
+@st.cache_data
+def get_unevolved(pokemon_name: str):
+    return get_pokemon_evolution_line(pokemon_name)[0][0]
+
+@st.cache_data
+def get_first_evolved(pokemon_name: str):
+    return get_pokemon_evolution_line(pokemon_name)[1]
+
+@st.cache_data
+def get_second_evolved(pokemon_name: str):
+    return get_pokemon_evolution_line(pokemon_name)[2]
+
+
+
 
 
 if __name__ == "__main__":

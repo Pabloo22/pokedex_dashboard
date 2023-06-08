@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 
 from st_aggrid import AgGrid, GridUpdateMode, GridOptionsBuilder, JsCode, AgGridReturn
 from utils import get_pokemon_image
@@ -135,7 +136,7 @@ def display_base_stats_type_defenses(match, pokemon_df):
         df_stats.columns = ['stats']
 
         # plot horizontal bar chart using matplotlib.pyplot
-        fig, ax = plt.subplots()
+        fig = go.Figure()
         if compare_match is not None:
             df_compare_stats = compare_match[['hp', 'attack', 'defense', 'sp_attack', 'sp_defense', 'speed']]
             df_compare_stats = df_compare_stats.rename(
@@ -157,20 +158,52 @@ def display_base_stats_type_defenses(match, pokemon_df):
             # Make the plot
             pokemon_name = match['name'].values[0]
             pokemon_name_compare = compare_match['name'].values[0]
-            ax.barh(y=r2, width=bars1, height=bar_width, label=pokemon_name)
-            ax.barh(y=r1, width=bars2, height=bar_width, label=pokemon_name_compare, color='gray')
+            fig.add_trace(go.Bar(
+                y=r2,
+                x=bars1,
+                orientation='h',
+                name=pokemon_name
+            ))
 
-            # Add xticks on the middle of the group bars
-            ax.set_yticks([r + bar_width / 2 for r in range(len(bars1))])
-            ax.set_yticklabels(df_stats.index)
+            fig.add_trace(go.Bar(
+                y=r1,
+                x=bars2,
+                orientation='h',
+                name=pokemon_name_compare,
+                marker=dict(color='gray')
+            ))
 
-            # Create legend & Show graphic
-            ax.legend()
+            fig.update_layout(
+                yaxis=dict(
+                    tickmode='array',
+                    tickvals=[r + bar_width / 2 for r in range(len(bars1))],
+                    ticktext=df_stats.index
+                ),
+                legend=dict(
+                    orientation='h',
+                    yanchor='bottom',
+                    y=1.02,
+                    xanchor='right',
+                    x=1
+                )
+            )
 
         else:
-            ax.barh(y=df_stats.index, width=df_stats.stats)
-        plt.xlim([0, 250])
-        col1.pyplot(fig)
+            fig.add_trace(go.Bar(
+                y=df_stats.index,
+                x=df_stats.stats,
+                orientation='h'
+            ))
+
+            fig.update_layout(
+                yaxis=dict(title='Pokemon'),
+                xaxis=dict(title='Stats'),
+                title='Pokemon Stats'
+            )
+        fig.update_layout(xaxis_range=[0, 250])
+        # plt.xlim([0, 250])
+        # col1.pyplot(fig)
+        col1.plotly_chart(fig)
         # right column col2 displays the weaknesses and resistances
         # the displayed types are nicely formatted using css (same as earlier)
         col2.subheader('Type Defenses')

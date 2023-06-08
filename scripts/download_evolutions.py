@@ -45,6 +45,9 @@ df['Unevolved Pokémon/Basic Pokémon'] = df['Unevolved Pokémon/Basic Pokémon'
 # Fill forward the second evolved Pokémon name
 df['Second-Evolved/Stage 2'] = df['Second-Evolved/Stage 2'].fillna(method='ffill')
 
+# Remove the first column
+df.drop(columns=['Pokédex_Number'], inplace=True)
+
 # Save the dataframe as a csv file
 os.makedirs('../data/', exist_ok=True)
 os.chdir('../data/')
