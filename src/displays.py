@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import streamlit as st
 import matplotlib.pyplot as plt
 
@@ -91,7 +92,7 @@ def display_table(data) -> AgGridReturn:
     return return_ag
 
 
-def display_base_stats_type_defenses(match, compare_match=None):
+def display_base_stats_type_defenses(match, pokemon_df):
     """Displays base stats and type defenses of a Pokemon.
 
     Code adapted from: https://betterprogramming.pub/build-your-own-pokedex-web-app-with-streamlit-10c550a98e22
@@ -122,6 +123,10 @@ def display_base_stats_type_defenses(match, compare_match=None):
 
         # left column col1 displays horizontal bar chart of base stats
         col1.subheader('Base Stats')
+        with col1.container():
+            compare_match = st.selectbox("Compare with", [None] + pokemon_df["name"].values.tolist())
+            compare_match = pokemon_df[pokemon_df["name"] == compare_match] if compare_match is not None else None
+
         # get base stats of Pokemon and rename columns nicely
         df_stats = match[['hp', 'attack', 'defense', 'sp_attack', 'sp_defense', 'speed']]
         df_stats = df_stats.rename(
@@ -131,7 +136,39 @@ def display_base_stats_type_defenses(match, compare_match=None):
 
         # plot horizontal bar chart using matplotlib.pyplot
         fig, ax = plt.subplots()
-        ax.barh(y=df_stats.index, width=df_stats.stats)
+        if compare_match is not None:
+            df_compare_stats = compare_match[['hp', 'attack', 'defense', 'sp_attack', 'sp_defense', 'speed']]
+            df_compare_stats = df_compare_stats.rename(
+                columns={'hp': 'HP', 'attack': 'Attack', 'defense': 'Defense', 'sp_attack': 'Special Attack',
+                            'sp_defense': 'Special Defense', 'speed': 'Speed'}).T
+            df_compare_stats.columns = ['stats']
+            df_stats['compare_stats'] = df_compare_stats['stats']
+
+            # Create a grouped bar chart that compares the stats of match and compare_match
+
+            # set width of bar
+            bar_width = 0.4
+            # set height of bar
+            bars1 = df_stats['stats']
+            bars2 = df_stats['compare_stats']
+            # Set position of bar on X axis
+            r1 = np.arange(len(bars1))
+            r2 = [x + bar_width for x in r1]
+            # Make the plot
+            pokemon_name = match['name'].values[0]
+            pokemon_name_compare = compare_match['name'].values[0]
+            ax.barh(y=r2, width=bars1, height=bar_width, label=pokemon_name)
+            ax.barh(y=r1, width=bars2, height=bar_width, label=pokemon_name_compare, color='gray')
+
+            # Add xticks on the middle of the group bars
+            ax.set_yticks([r + bar_width / 2 for r in range(len(bars1))])
+            ax.set_yticklabels(df_stats.index)
+
+            # Create legend & Show graphic
+            ax.legend()
+
+        else:
+            ax.barh(y=df_stats.index, width=df_stats.stats)
         plt.xlim([0, 250])
         col1.pyplot(fig)
         # right column col2 displays the weaknesses and resistances

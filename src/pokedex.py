@@ -38,13 +38,15 @@ def main_page():
     display_basic_info(match)
 
     st.markdown("## Base Stats and Type Defenses")
-    compare_with = st.selectbox("Compare with", [None] + pokemon_df["name"].values.tolist())
-    compare_with_match = pokemon_df[pokemon_df["name"] == compare_with]
-    display_base_stats_type_defenses(match, compare_with_match)
+    # compare_match = st.selectbox("Compare with", [None] + pokemon_df["name"].values.tolist())
+    # compare_match = pokemon_df[pokemon_df["name"] == compare_match] if compare_match is not None else None
+    display_base_stats_type_defenses(match, pokemon_df)
 
     st.markdown("## Similar Pokemon")
     col1, col2 = st.columns(2, gap="large")
     with col1:
+        # Choose between "type" and "pop-out"
+        mode = st.radio("", ["type", "pop-out"])
         fig = pokemon_umap()
         st.plotly_chart(fig, use_container_width=True)
 
