@@ -6,7 +6,16 @@ import pathlib
 from PIL import Image
 
 
-def pokemon_umap(color_by: str = "type", pokedex_number: int = 1) -> plotly.graph_objs._figure.Figure:
+@st.cache_data
+def load_pokemon_dataframe():
+    """Loads the pokemon dataframe."""
+    parent_path = pathlib.Path(__file__).parent.parent.absolute()
+    pokemon_path = parent_path / "data/pokemon.csv"
+    df = pd.read_csv(pokemon_path)
+    return df
+
+
+def pokemon_umap(color_by: str = "type", pokedex_number: int = 1):
     """Display an umap plot of pokemon.
 
     Args:
@@ -31,34 +40,41 @@ def pokemon_umap(color_by: str = "type", pokedex_number: int = 1) -> plotly.grap
 
 
 @st.cache_data
-def get_similarities(pokedex_number: int) -> pd.Series | list[float]:
+def get_similarities(pokemon_name: str) -> pd.Series | list[float]:
     """Returns a list of similarities to the current pokemon sorted by pokedex number."""
-    similarities = {
-        1: [0.1, 0.4, 0.35, 0.8, 0.65],
-        2: [0.2, 0.3, 0.35, 0.28, 0.5],
-        3: [0.3, 0.2, 0.35, 0.18, 0.35],
-        4: [0.4, 0.1, 0.35, 0.08, 0.25],
-        5: [0.5, 0.0, 0.35, 0.18, 0.15],
-    }
-    return similarities[pokedex_number]
+    import numpy as np
+
+    N_POKEMONS = 801
+    np.random.seed(42)
+    similarities = np.random.rand(N_POKEMONS)
+    return similarities
 
 
 @st.cache_data
-def pokemon_table(pokedex_number: int = 1) -> pd.DataFrame:
+def pokemon_table(pokemon_df: pd.DataFrame, pokemon_name: str) -> pd.DataFrame:
     """Returns a dataframe with basic information about all pokemon.
 
     It adds a column of similarities to the current pokemon.
 
     Args:
-        pokedex_number (int, optional): pokedex number of the current pokemon. Defaults to 1.
+        pokemon_df (pd.DataFrame): dataframe with pokemon information.
+        pokemon_name (int, optional): pokedex number of the current pokemon. Defaults to 1.
     """
-    # Create a sample dataframe
-    data = {'id': [1, 2, 3, 4, 5],
-            'similarity': get_similarities(pokedex_number),
-            'other_info': ['info1', 'info2', 'info3', 'info4', 'info5']}
-    df = pd.DataFrame(data)
+    similarities = get_similarities(pokemon_name)
+    df = pokemon_df.copy()
+    assert len(similarities) == len(df)
 
+    df["similarity"] = similarities
+    # Select columns "name", "type1", "type2", "similarity"
+    df = df[["name", "type1", "type2", "similarity"]]
+    # Sort by similarity
+    df = df.sort_values(by="similarity", ascending=False)
     return df
+
+
+@st.cache_data
+def get_pokedex_number(pokemon_df: pd.DataFrame, name: str) -> int:
+    return pokemon_df[pokemon_df["name"] == name]["pokedex_number"].values[0]
 
 
 @st.cache_data
