@@ -38,7 +38,9 @@ def main_page():
     display_basic_info(match)
 
     st.markdown("## Base Stats and Type Defenses")
-    display_base_stats_type_defenses(match)
+    compare_with = st.selectbox("Compare with", [None] + pokemon_df["name"].values.tolist())
+    compare_with_match = pokemon_df[pokemon_df["name"] == compare_with]
+    display_base_stats_type_defenses(match, compare_with_match)
 
     st.markdown("## Similar Pokemon")
     col1, col2 = st.columns(2, gap="large")
