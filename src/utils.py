@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import streamlit as st
 import plotly
 import plotly.express as px
@@ -9,8 +10,12 @@ from PIL import Image
 @st.cache_data
 def load_pokemon_dataframe():
     """Loads the pokemon dataframe."""
-    parent_path = pathlib.Path(__file__).parent.parent.absolute()
-    pokemon_path = parent_path / "data/pokemon.csv"
+    parent_path = pathlib.Path(__file__).parent
+    # Loop until get src folder
+    while parent_path.name != "src":
+        parent_path = parent_path.parent
+
+    pokemon_path = parent_path.parent.absolute() / "data/pokemon.csv"
     df = pd.read_csv(pokemon_path)
     return df
 
@@ -45,8 +50,8 @@ def get_similarities(pokemon_name: str) -> pd.Series | list[float]:
     import numpy as np
 
     N_POKEMONS = 801
-    np.random.seed(42)
-    similarities = np.random.rand(N_POKEMONS)
+    np.random.seed(hash(pokemon_name) % 2 ** 32)
+    similarities = np.round(np.random.rand(N_POKEMONS), 4)
     return similarities
 
 
@@ -66,7 +71,7 @@ def pokemon_table(pokemon_df: pd.DataFrame, pokemon_name: str) -> pd.DataFrame:
 
     df["similarity"] = similarities
     # Select columns "name", "type1", "type2", "similarity"
-    df = df[["name", "type1", "type2", "similarity"]]
+    df = df[["pokedex_number", "name", "type1", "type2", "similarity"]].rename({"pokedex_number": "#"}, axis=1)
     # Sort by similarity
     df = df.sort_values(by="similarity", ascending=False)
     return df
@@ -80,7 +85,11 @@ def get_pokedex_number(pokemon_df: pd.DataFrame, name: str) -> int:
 @st.cache_data
 def get_pokemon_image(pokedex_number: int):
     """Returns the image of the pokemon with the given pokedex number."""
-    parent_path = pathlib.Path(__file__).parent.parent.absolute()
+    parent_path = pathlib.Path(__file__).parent
+    # Loop until get to src folder
+    while parent_path.name != "src":
+        parent_path = parent_path.parent
+    parent_path = parent_path.parent.absolute()
     pokedex_number = str(pokedex_number).zfill(3)
     image_path = parent_path / f"images/{pokedex_number}.png"
 
