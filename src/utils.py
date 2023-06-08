@@ -5,6 +5,8 @@ import plotly
 import plotly.express as px
 import pathlib
 from PIL import Image
+import umap
+from sklearn.preprocessing import MinMaxScaler
 
 
 @st.cache_data
@@ -27,20 +29,106 @@ def pokemon_umap(color_by: str = "type", pokedex_number: int = 1):
         color_by (str, optional): Color by type or similarity. Defaults to "type". Can be "type" or "pop-out".
         pokedex_number (int, optional): Current pokemon id, used to color by pop-out. Defaults to 1.
     """
+    np.random.seed(42)
+    df = load_pokemon_dataframe()
 
-    # Create a sample dataframe
-    ids = [1, 2, 3, 4, 5]
-    x = [0.1, 0.4, 0.35, 0.8, 0.65]
-    y = [0.2, 0.3, 0.45, 0.7, 0.55]
-    data = {'id': ids,
-            'x': x,
-            'y': y,
-            'other_info': ['info1', 'info2', 'info3', 'info4', 'info5']}
-    df = pd.DataFrame(data)
+    # Select numeric columns
+    numeric_cols = df.select_dtypes(include="number").columns
+    remove_cols = ['percenatge_male', 'generation', 'pokedex_number']
+    numeric_cols = [col for col in numeric_cols if col not in remove_cols and df[col].isna().sum() == 0]
+    df_numeric = df[numeric_cols]
 
-    # Plotly plot
-    fig = px.scatter(df, x="x", y="y", hover_data=["id"])
+    # Scale data
+    scaler = MinMaxScaler()
+    df_numeric = pd.DataFrame(scaler.fit_transform(df_numeric), columns=df_numeric.columns)
 
+    # UMAP
+    umap_model = umap.UMAP(n_neighbors=5, min_dist=0.3, metric="correlation")
+    umap_embeddings = umap_model.fit_transform(df_numeric)
+    df["x"] = umap_embeddings[:, 0] + np.random.normal(loc=0, scale=0.1, size=umap_embeddings.shape[0])
+    df["y"] = umap_embeddings[:, 1] + np.random.normal(loc=0, scale=0.1, size=umap_embeddings.shape[0])
+
+    # Get the hex color of each type from style.css
+    # Load style.css
+    current_path = pathlib.Path(__file__).parent.absolute()
+    with open(current_path / "style.css") as f:
+        css = f.read()
+    # Get the hex color of each type
+    type_colors = {
+        'normal': '#aa9',
+        'fire': '#f42',
+        'water': '#39f',
+        'electric': '#fc3',
+        'grass': '#7c5',
+        'ice': '#6cf',
+        'fighting': '#b54',
+        'poison': '#a59',
+        'ground': '#db5',
+        'flying': '#89f',
+        'psychic': '#f59',
+        'bug': '#ab2',
+        'rock': '#ba6',
+        'ghost': '#66b',
+        'dragon': '#76e',
+        'dark': '#754',
+        'steel': '#aab',
+        'fairy': '#e9e',
+        'curse': '#698'
+    }
+
+    if color_by == "type":
+        # Plot
+        fig = px.scatter(
+            df,
+            x="x",
+            y="y",
+            color="type1",
+            color_discrete_map=type_colors,
+            hover_data=["name", "type1", "type2"],
+            width=800,
+            height=600,
+        )
+        fig.update_traces(marker=dict(size=12, line=dict(width=2, color="DarkSlateGrey")))
+        fig.update_layout(
+            plot_bgcolor="#f9f9f9",
+            paper_bgcolor="#f9f9f9",
+            font_color="#333333",
+            margin=dict(l=0, r=0, t=0, b=0),
+        )
+    elif color_by == "pop-out":
+        df["pop-out"] = df["pokedex_number"] == pokedex_number
+        # Get the name of the current pokemon
+        current_pokemon = df[df["pokedex_number"] == pokedex_number]["name"].values[0]
+        df['pop-out'] = df['pop-out'].apply(lambda x: current_pokemon if x else f'Not {current_pokemon}')
+        popout_colors = {
+            current_pokemon: '#ff0000',
+            f'Not {current_pokemon}': '#808080'
+        }
+        # Plot
+        fig = px.scatter(
+            df,
+            x="x",
+            y="y",
+            color="pop-out",
+            color_discrete_map=popout_colors,
+            hover_data=["name", "type1", "type2"],
+            width=800,
+            height=600,
+        )
+        fig.update_traces(marker=dict(size=12, line=dict(width=2, color="DarkSlateGrey")))
+        # Center the plot on the current pokemon
+        fig.update_layout(
+            plot_bgcolor="#f9f9f9",
+            paper_bgcolor="#f9f9f9",
+            font_color="#333333",
+            margin=dict(l=0, r=0, t=0, b=0),
+            xaxis=dict(range=[df[df["name"] == current_pokemon]["x"].values[0] - 4,
+                              df[df["name"] == current_pokemon]["x"].values[0] + 4]),
+            yaxis=dict(range=[df[df["name"] == current_pokemon]["y"].values[0] - 4,
+                              df[df["name"] == current_pokemon]["y"].values[0] + 4]),
+        )
+    else:
+        raise ValueError(f"color_by must be 'type' or 'pop-out', got {color_by}")
     return fig
 
 
@@ -110,3 +198,14 @@ def get_pokemon_name(pokedex_number: int):
         5: "Charmeleon",
     }
     return names[pokedex_number]
+
+
+if __name__ == "__main__":
+    df = load_pokemon_dataframe()
+    plot = pokemon_umap(color_by="pop-out")
+    # Show scatter plot not in streamlit
+    plotly.offline.plot(plot, filename="umap_popout.html")
+
+    plot = pokemon_umap(color_by="type")
+    # Show scatter plot not in streamlit
+    plotly.offline.plot(plot, filename="umap_type.html")
