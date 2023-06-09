@@ -81,13 +81,16 @@ def display_table(data) -> AgGridReturn:
     gb.configure_selection(selection_mode='single')
     go = gb.build()
 
+    # Round to 4 decimal places
+    data["similarity"] = data["similarity"].apply(lambda x: round(x, 4))
+
     return_ag = AgGrid(data,
                        gridOptions=go,
                        allow_unsafe_jscode=True,
                        reload_data=True,
                        update_mode=GridUpdateMode.SELECTION_CHANGED,
                        fit_columns_on_grid_load=True,
-                       height=300,
+                       height=600,
                        hide_index=False,
                        update_on=['selection_changed'],)
     return return_ag
@@ -196,14 +199,12 @@ def display_base_stats_type_defenses(match, pokemon_df):
             ))
 
             fig.update_layout(
-                yaxis=dict(title='Pokemon'),
-                xaxis=dict(title='Stats'),
                 title='Pokemon Stats'
             )
         fig.update_layout(xaxis_range=[0, 250])
         # plt.xlim([0, 250])
         # col1.pyplot(fig)
-        col1.plotly_chart(fig)
+        col1.plotly_chart(fig, use_container_width=True)
         # right column col2 displays the weaknesses and resistances
         # the displayed types are nicely formatted using css (same as earlier)
         col2.subheader('Type Defenses')

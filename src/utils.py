@@ -20,6 +20,8 @@ def load_pokemon_dataframe():
     pokemon_path = parent_path.parent.absolute() / "data/pokemon.csv"
     df = pd.read_csv(pokemon_path)
     return df
+
+
 @st.cache_data
 def get_df_with_umap():
     np.random.seed(0)
@@ -27,7 +29,7 @@ def get_df_with_umap():
 
     # Select numeric columns
     numeric_cols = df.select_dtypes(include="number").columns
-    remove_cols = ['percenatge_male', 'generation', 'pokedex_number']
+    remove_cols = ["percentage_male", "generation", "pokedex_number", "height_m", "weight_kg"]
     numeric_cols = [col for col in numeric_cols if col not in remove_cols and df[col].isna().sum() == 0]
     df_numeric = df[numeric_cols]
 
@@ -38,8 +40,17 @@ def get_df_with_umap():
     # UMAP
     umap_model = umap.UMAP(n_neighbors=5, min_dist=0.3, metric="correlation", random_state=0)
     umap_embeddings = umap_model.fit_transform(df_numeric)
-    umap_df = pd.DataFrame(umap_embeddings, columns=["x", "y"])
+    umap_df = pd.DataFrame(umap_embeddings, columns=["first component", "second component"])
+
+    # Normalize components
+    min_first_component = umap_df["first component"].min()
+    max_first_component = umap_df["first component"].max()
+    min_second_component = umap_df["second component"].min()
+    max_second_component = umap_df["second component"].max()
+    umap_df["first component"] = (umap_df["first component"] - min_first_component) / (max_first_component - min_first_component)
+    umap_df["second component"] = (umap_df["second component"] - min_second_component) / (max_second_component - min_second_component)
     return umap_df
+
 
 @st.cache_data
 def pokemon_umap(color_by: str = "type", pokedex_number: int = 1):
@@ -53,8 +64,8 @@ def pokemon_umap(color_by: str = "type", pokedex_number: int = 1):
     df = load_pokemon_dataframe()
     umap_df = get_df_with_umap()
 
-    df["x"] = umap_df["x"]
-    df["y"] = umap_df["y"]
+    df["first component"] = umap_df["first component"]
+    df["second component"] = umap_df["second component"]
 
     # Get the hex color of each type
     type_colors = {
@@ -83,11 +94,13 @@ def pokemon_umap(color_by: str = "type", pokedex_number: int = 1):
         # Plot
         fig = px.scatter(
             df,
-            x="x",
-            y="y",
+            x="first component",
+            y="second component",
+            title="Pokemon Embeddings",
             color="type1",
             color_discrete_map=type_colors,
-            hover_data=["name", "type1", "type2"],
+            hover_name="name",
+            hover_data=["type1", "type2"],
             width=800,
             height=600,
         )
@@ -110,11 +123,12 @@ def pokemon_umap(color_by: str = "type", pokedex_number: int = 1):
         # Plot
         fig = px.scatter(
             df,
-            x="x",
-            y="y",
+            x="first component",
+            y="second component",
             color="pop-out",
             color_discrete_map=popout_colors,
-            hover_data=["name", "type1", "type2"],
+            hover_name="name",
+            hover_data=["type1", "type2"],
             width=800,
             height=600,
         )
@@ -125,25 +139,54 @@ def pokemon_umap(color_by: str = "type", pokedex_number: int = 1):
             #paper_bgcolor="#f9f9f9",
             #font_color="#333333",
             margin=dict(l=0, r=0, t=0, b=0),
-            xaxis=dict(range=[df[df["name"] == current_pokemon]["x"].values[0] - 4,
-                              df[df["name"] == current_pokemon]["x"].values[0] + 4]),
-            yaxis=dict(range=[df[df["name"] == current_pokemon]["y"].values[0] - 4,
-                              df[df["name"] == current_pokemon]["y"].values[0] + 4]),
+            xaxis=dict(range=[df[df["name"] == current_pokemon]["first component"].values[0] - 0.1,
+                              df[df["name"] == current_pokemon]["first component"].values[0] + 0.1]),
+            yaxis=dict(range=[df[df["name"] == current_pokemon]["second component"].values[0] - 0.1,
+                              df[df["name"] == current_pokemon]["second component"].values[0] + 0.1]),
         )
     else:
         raise ValueError(f"color_by must be 'type' or 'pop-out', got {color_by}")
     return fig
 
 
+def _cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
+    """Returns the cosine similarity between two vectors."""
+    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+
+
+def _vectorized_cosine_similarity(a: pd.DataFrame, b: pd.DataFrame) -> pd.Series:
+    """Returns the cosine similarity between two vectors."""
+    return np.dot(a, b.T) / (np.linalg.norm(a) * np.linalg.norm(b, axis=1))
+
+
+def _vectorized_euclidean_distance(a: pd.DataFrame, b: pd.DataFrame, normalize=True) -> pd.Series:
+    """Returns the euclidean distance between two vectors."""
+    result = np.linalg.norm(a - b, axis=1)
+    # Normalize the result
+    if normalize:
+        result = (result - result.min()) / (result.max() - result.min())
+
+    return result
+
+
 @st.cache_data
 def get_similarities(pokemon_name: str) -> pd.Series | list[float]:
     """Returns a list of similarities to the current pokemon sorted by pokedex number."""
-    import numpy as np
+    np.random.seed(42)
+    df = load_pokemon_dataframe()
+    umap_df = get_df_with_umap()
 
-    N_POKEMONS = 801
-    np.random.seed(hash(pokemon_name) % 2 ** 32)
-    similarities = np.round(np.random.rand(N_POKEMONS), 4)
-    return similarities
+    df["first component"] = umap_df["first component"]
+    df["second component"] = umap_df["second component"]
+
+    # Get the current pokemon embedding
+    current_pokemon = df[df["name"] == pokemon_name][["first component", "second component"]]
+
+    # Use cosine similarity to get the similarity between the current pokemon and all the others
+    df["similarity"] = 1 - _vectorized_euclidean_distance(df[["first component", "second component"]].to_numpy(),
+                                                          current_pokemon.to_numpy())
+
+    return df["similarity"]
 
 
 @st.cache_data
@@ -158,9 +201,8 @@ def pokemon_table(pokemon_df: pd.DataFrame, pokemon_name: str) -> pd.DataFrame:
     """
     similarities = get_similarities(pokemon_name)
     df = pokemon_df.copy()
-    assert len(similarities) == len(df)
 
-    df["similarity"] = similarities
+    df["similarity"] = np.round(similarities, 4)
     # Select columns "name", "type1", "type2", "similarity"
     df = df[["pokedex_number", "name", "type1", "type2", "similarity"]].rename({"pokedex_number": "#"}, axis=1)
     # Sort by similarity

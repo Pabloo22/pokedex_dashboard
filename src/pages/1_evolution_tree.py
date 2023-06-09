@@ -1,23 +1,27 @@
 import streamlit as st
 
-from utils import load_pokemon_dataframe, get_pokedex_number, get_pokemon_evolution_line, get_unevolved, \
-    get_first_evolved, get_second_evolved, get_pokemon_image
+from utils import (load_pokemon_dataframe,
+                   get_pokedex_number,
+                   get_pokemon_image,
+                   get_unevolved,
+                   get_first_evolved,
+                   get_second_evolved,
+                   )
 
 # Initialization
 if "selected_pokemon" not in st.session_state:
     st.session_state["selected_pokemon"] = "Bulbasaur"
 
-
 st.markdown("<h1 style='text-align: center;'>Evolution Tree</h1>", unsafe_allow_html=True)
 
 pokemon_df = load_pokemon_dataframe()
 st.session_state["selected_pokemon"] = st.selectbox("-",
-                                                        pokemon_df["name"].values,
-                                                        label_visibility="hidden",
-                                                        index=int(get_pokedex_number(
-                                                            pokemon_df,
-                                                            st.session_state["selected_pokemon"])
-                                                        ) - 1)
+                                                    pokemon_df["name"].values,
+                                                    label_visibility="hidden",
+                                                    index=int(get_pokedex_number(
+                                                        pokemon_df,
+                                                        st.session_state["selected_pokemon"])
+                                                    ) - 1)
 
 col1, col2, col3 = st.columns(3)
 
