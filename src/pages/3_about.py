@@ -15,6 +15,36 @@ logo.save(image_stream, format='PNG')
 # Convert the image stream to base64
 base64_image = base64.b64encode(image_stream.getvalue()).decode('utf-8')
 
+st.markdown("""<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>About</title>
+</head>
+<body>
+  <h1>About</h1>
+  <p>
+    The Pokémon Dashboard is an interactive web application that provides detailed information and visualizations about 
+    the fascinating world of Pokémon. It utilizes an extensive Pokémon dataset to offer a comprehensive examination of 
+    individual Pokémon, their evolution trees, and similarities among them using the UMAP algorithm.
+  </p>
+  <p>
+    You can explore in-depth information about specific Pokémon, including their types, 
+    abilities, base stats, and more. You can visualize the evolution tree of a Pokémon, allowing you to understand the 
+    different stages of its development and how it relates to other Pokemon within its evolutionary line.
+  </p>
+  <p>
+    Additionally, the dashboard employs the UMAP algorithm to identify similar Pokémon based on various attributes such 
+    as type, base stats, and abilities. This feature allows you to discover Pokemon that share similar characteristics 
+    and may be of interest to you.
+  </p>
+  <p>
+    Whether you are a long-time Pokémon fan or just curious about these creatures, the Pokemon Dashboard offers a wealth
+     of information and interactive tools to enhance your understanding and explore the Pokemon universe.
+  </p>
+</body>
+</html>""", unsafe_allow_html=True)
+
 st.markdown(f"""<!DOCTYPE html>
 <html>
 <head>
@@ -28,7 +58,7 @@ st.markdown(f"""<!DOCTYPE html>
             height: auto;
         }}
     </style>
-    <h1 style='text-align: center;'>About</h1>
+    <h1 style='text-align: center;'>Acknowledgements</h1>
 </head>
 <body>
     <p>This dashboard was created by Pablo Ariño and Álvaro Laguna.</p>
