@@ -28,21 +28,20 @@ st.sidebar.title("Pokédex Dashboard")
 
 # Add a selectbox to the sidebar:
 with st.sidebar:
+
+    st.session_state["selected_pokemon"] = st.selectbox("Select a Pokemon",
+                                                        pokemon_df["name"].values,
+                                                        index=int(get_pokedex_number(
+                                                            pokemon_df,
+                                                            st.session_state["selected_pokemon"])
+                                                        ) - 1)
     compare_match = st.selectbox("Compare with", [None] + pokemon_df["name"].values.tolist())
     compare_match = pokemon_df[pokemon_df["name"] == compare_match] if compare_match is not None else None
 
-st.session_state["selected_pokemon"] = st.selectbox("-",
-                                                    pokemon_df["name"].values,
-                                                    label_visibility="hidden",
-                                                    index=int(get_pokedex_number(
-                                                        pokemon_df,
-                                                        st.session_state["selected_pokemon"])
-                                                    ) - 1)
 
 match = pokemon_df[pokemon_df["name"] == st.session_state["selected_pokemon"]]
-display_basic_info(match)
 
-st.markdown("## Base Stats and Type Defenses")
+display_basic_info(match)
 
 display_base_stats_type_defenses(match, compare_match)
 

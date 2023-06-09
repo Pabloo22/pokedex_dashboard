@@ -90,7 +90,7 @@ def display_table(data) -> AgGridReturn:
                        reload_data=True,
                        update_mode=GridUpdateMode.SELECTION_CHANGED,
                        fit_columns_on_grid_load=True,
-                       height=600,
+                       height=500,
                        hide_index=False,
                        update_on=['selection_changed'],)
     return return_ag
@@ -197,10 +197,10 @@ def display_base_stats_type_defenses(match, compare_match=None):
                 x=df_stats.stats,
                 orientation='h'
             ))
-
-            fig.update_layout(
-                title='Pokemon Stats'
-            )
+            #
+            # fig.update_layout(
+            #     title='Pokemon Stats'
+            # )
         fig.update_layout(xaxis_range=[0, 250])
         # plt.xlim([0, 250])
         # col1.pyplot(fig)

@@ -96,7 +96,7 @@ def pokemon_umap(color_by: str = "type", pokedex_number: int = 1):
             df,
             x="first component",
             y="second component",
-            title="Pokemon Embeddings",
+            # title="Pokemon Embeddings",
             color="type1",
             color_discrete_map=type_colors,
             hover_name="name",

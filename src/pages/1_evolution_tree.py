@@ -15,13 +15,17 @@ if "selected_pokemon" not in st.session_state:
 st.markdown("<h1 style='text-align: center;'>Evolution Tree</h1>", unsafe_allow_html=True)
 
 pokemon_df = load_pokemon_dataframe()
-st.session_state["selected_pokemon"] = st.selectbox("-",
-                                                    pokemon_df["name"].values,
-                                                    label_visibility="hidden",
-                                                    index=int(get_pokedex_number(
-                                                        pokemon_df,
-                                                        st.session_state["selected_pokemon"])
-                                                    ) - 1)
+
+with st.sidebar:
+    last_selected_pokemon = st.session_state["selected_pokemon"]
+    st.session_state["selected_pokemon"] = st.selectbox("Select a Pokemon",
+                                                        pokemon_df["name"].values,
+                                                        index=int(get_pokedex_number(
+                                                            pokemon_df,
+                                                            st.session_state["selected_pokemon"])
+                                                        ) - 1)
+    if last_selected_pokemon != st.session_state["selected_pokemon"]:
+        st.experimental_rerun()
 
 col1, col2, col3 = st.columns(3)
 
