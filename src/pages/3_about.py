@@ -31,16 +31,16 @@ st.markdown("""<!DOCTYPE html>
   <p>
     You can explore in-depth information about specific Pokémon, including their types, 
     abilities, base stats, and more. You can visualize the evolution tree of a Pokémon, allowing you to understand the 
-    different stages of its development and how it relates to other Pokemon within its evolutionary line.
+    different stages of its development and how it relates to other Pokémon within its evolutionary line.
   </p>
   <p>
     Additionally, the dashboard employs the UMAP algorithm to identify similar Pokémon based on various attributes such 
-    as type, base stats, and abilities. This feature allows you to discover Pokemon that share similar characteristics 
+    as type, base stats, and abilities. This feature allows you to discover Pokémon that share similar characteristics 
     and may be of interest to you.
   </p>
   <p>
-    Whether you are a long-time Pokémon fan or just curious about these creatures, the Pokemon Dashboard offers a wealth
-     of information and interactive tools to enhance your understanding and explore the Pokemon universe.
+    Whether you are a long-time Pokémon fan or just curious about these creatures, the Pokémon Dashboard offers a wealth
+     of information and interactive tools to enhance your understanding and explore the Pokémon universe.
   </p>
 </body>
 </html>""", unsafe_allow_html=True)
