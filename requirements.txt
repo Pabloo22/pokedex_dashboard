@@ -6,3 +6,4 @@ umap-learn
 scikit-learn
 Pillow
 requests
+streamlit-aggrid
