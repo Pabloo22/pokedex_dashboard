@@ -25,6 +25,12 @@ pokemon_df = load_pokemon_dataframe()
 
 st.markdown("<h1 style='text-align: center;'>Pokédex Dashboard</h1>", unsafe_allow_html=True)
 st.sidebar.title("Pokédex Dashboard")
+
+# Add a selectbox to the sidebar:
+with st.sidebar:
+    compare_match = st.selectbox("Compare with", [None] + pokemon_df["name"].values.tolist())
+    compare_match = pokemon_df[pokemon_df["name"] == compare_match] if compare_match is not None else None
+
 st.session_state["selected_pokemon"] = st.selectbox("-",
                                                     pokemon_df["name"].values,
                                                     label_visibility="hidden",
@@ -37,7 +43,6 @@ match = pokemon_df[pokemon_df["name"] == st.session_state["selected_pokemon"]]
 display_basic_info(match)
 
 st.markdown("## Base Stats and Type Defenses")
-# compare_match = st.selectbox("Compare with", [None] + pokemon_df["name"].values.tolist())
-# compare_match = pokemon_df[pokemon_df["name"] == compare_match] if compare_match is not None else None
-display_base_stats_type_defenses(match, pokemon_df)
+
+display_base_stats_type_defenses(match, compare_match)
 

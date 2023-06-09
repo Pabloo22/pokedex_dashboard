@@ -96,7 +96,7 @@ def display_table(data) -> AgGridReturn:
     return return_ag
 
 
-def display_base_stats_type_defenses(match, pokemon_df):
+def display_base_stats_type_defenses(match, compare_match=None):
     """Displays base stats and type defenses of a Pokemon.
 
     Code adapted from: https://betterprogramming.pub/build-your-own-pokedex-web-app-with-streamlit-10c550a98e22
@@ -127,9 +127,9 @@ def display_base_stats_type_defenses(match, pokemon_df):
 
         # left column col1 displays horizontal bar chart of base stats
         col1.subheader('Base Stats')
-        with col1.container():
-            compare_match = st.selectbox("Compare with", [None] + pokemon_df["name"].values.tolist())
-            compare_match = pokemon_df[pokemon_df["name"] == compare_match] if compare_match is not None else None
+        # with col1.container():
+            # compare_match = st.selectbox("Compare with", [None] + pokemon_df["name"].values.tolist())
+            # compare_match = pokemon_df[pokemon_df["name"] == compare_match] if compare_match is not None else None
 
         # get base stats of Pokemon and rename columns nicely
         df_stats = match[['hp', 'attack', 'defense', 'sp_attack', 'sp_defense', 'speed']]

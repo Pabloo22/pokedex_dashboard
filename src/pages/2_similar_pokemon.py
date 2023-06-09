@@ -13,6 +13,9 @@ st.markdown("<h1 style='text-align: center;'>Similar Pokemon</h1>", unsafe_allow
 if "selected_pokemon" not in st.session_state:
     st.session_state["selected_pokemon"] = "Bulbasaur"
 
+with st.sidebar:
+    mode = st.radio("Mode", ["type", "pop-out"], index=0)
+
 pokemon_df = load_pokemon_dataframe()
 st.session_state["selected_pokemon"] = st.selectbox("-",
                                                     pokemon_df["name"].values,
@@ -26,7 +29,7 @@ display_basic_info(pokemon_df[pokemon_df["name"] == st.session_state["selected_p
 col1, col2 = st.columns(2, gap="large")
 with col1:
     # Choose between "type" and "pop-out"
-    mode = st.radio("", ["type", "pop-out"])
+
     fig = pokemon_umap(color_by=mode, pokedex_number=get_pokedex_number(pokemon_df,
                                                                         st.session_state["selected_pokemon"]))
     st.plotly_chart(fig, use_container_width=True)
