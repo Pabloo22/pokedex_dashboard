@@ -5,5 +5,4 @@ plotly
 umap-learn
 scikit-learn
 Pillow
-sklearn
 requests
