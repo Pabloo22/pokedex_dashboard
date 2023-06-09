@@ -34,7 +34,11 @@ st.markdown(f"""<!DOCTYPE html>
     <p>This dashboard was created by Pablo Ariño and Álvaro Laguna.</p>
     <p>The data used in this dashboard was obtained from <a href="https://www.kaggle.com/rounakbanik/pokemon">Kaggle</a>
     and scraped from the <a href="https://pokemon.fandom.com/wiki/List_of_Pok%C3%A9mon_by_evolution">Pokémon Wiki</a>.
-    </p>    
+    </p>
+    <p>Part of the code for displaying the main Pokémon data and Type Defenses was adapted from the following 
+    tutorial:<br> 
+    <a href="https://betterprogramming.pub/build-your-own-pokedex-web-app-with-streamlit-10c550a98e22">Build Your Own 
+    Pokedex Web App With Streamlit</a>.</p>
     <p>Pokémon and All Respective Names are Trademark &amp; © of Nintendo 1996-2023.</p>
     <img src="data:image/png;base64,{base64_image}"/>
 </body>
