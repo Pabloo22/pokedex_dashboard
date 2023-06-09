@@ -1,10 +1,5 @@
 import streamlit as st
 
-
-st.set_page_config(page_title="Pokemon Dashboard", layout="wide")
-
-
-import streamlit as st
 import pathlib
 
 from utils import (load_pokemon_dataframe,
@@ -12,6 +7,9 @@ from utils import (load_pokemon_dataframe,
                    )
 
 from displays import display_basic_info, display_base_stats_type_defenses
+
+
+st.set_page_config(page_title="Pokemon Dashboard", layout="wide")
 
 current_path = pathlib.Path(__file__).parent.absolute()
 with open(current_path / "style.css") as f:
