@@ -170,7 +170,7 @@ def _vectorized_euclidean_distance(a: pd.DataFrame, b: pd.DataFrame, normalize=T
 
 
 @st.cache_data
-def get_similarities(pokemon_name: str) -> pd.Series | list[float]:
+def get_similarities(pokemon_name: str) -> pd.Series:
     """Returns a list of similarities to the current pokemon sorted by pokedex number."""
     np.random.seed(42)
     df = load_pokemon_dataframe()
